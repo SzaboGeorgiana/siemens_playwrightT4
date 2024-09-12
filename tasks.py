@@ -8,46 +8,8 @@ FILE_NAME = "challenge.xlsx"
 EXCEL_URL = f"https://rpachallenge.com/assets/downloadFiles/{FILE_NAME}"
 OUTPUT_DIR = Path(os.getenv("ROBOT_ARTIFACTS", "output"))
 
-
-@task
-def my_task_4():
-
-    # Navigate to Site
-    page=browser.goto("https://sieportal.siemens.com/en-de/home")
-    
-    # agree cookies
-    page.click('button:has-text("Accept All Cookies")')
-
-    # Products & Services
-    page.wait_for_selector('a:has-text("Products & Services")')
-    page.hover('a:has-text("Products & Services")')
-
-    # List of configurators 
-    list_config_selector='div.primary-label.truncate[title="List of configurators"]'
-    page.wait_for_selector(list_config_selector)
-    page.click(list_config_selector)
-
-    # Drive technology
-    page.locator("div.topLevelNode", has_text="Drive technology").click()
-    # drive_tech_selector='div:has-text("Drive technology")'
-    # page.wait_for_selector(drive_tech_selector)
-    # page.click(drive_tech_selector)
-
-    # Siemens Product Configurator
-    product_config_selector='a:has-text("Siemens Product Configurator")'
-    page.wait_for_selector(product_config_selector)
-    page.click(product_config_selector)
-
-    # Search
-    searchbar=page.locator('input.spc-input')
-    searchbar.fill("1LE1") 
-
-    # Innomotics Low Voltage Motors
-    page.wait_for_selector('p.text-main-on-light.font-bold')
-    element = page.locator('text=Innomotics Low Voltage Motors')
-    element.click()
-
-    # find Next button
+def configure_motor(page):
+     # find Next button
     page.wait_for_selector('span.spc-skeleton--normal:text("Next")')
     next_button = page.locator('span.spc-skeleton--normal:text("Next")')
 
@@ -78,6 +40,72 @@ def my_task_4():
             
         page.wait_for_timeout(3000)  # Wait for 3 seconds
 
+
+def search_motor(page):
+    # Search
+    searchbar=page.locator('input.spc-input')
+    searchbar.fill("1LE1") 
+
+    # Innomotics Low Voltage Motors
+    page.wait_for_selector('p.text-main-on-light.font-bold')
+    element = page.locator('text=Innomotics Low Voltage Motors')
+    element.click()
+
+
+def check_products_list(page):
+    # Products list
+    products_list_selector='spc-icon.icon-sieportal-orderlist'
+    page.wait_for_selector(products_list_selector)
+    page.click(products_list_selector)
+
+    page.wait_for_timeout(3000)  # Wait for 3 seconds
+
+    product_selector= f'//span[contains (text(), "Innomotics GP General Purpose Motors")]'
+    try:
+        product_element = page.query_selector(product_selector) 
+        if product_element:
+            print(f"Product is available.")
+        else:
+            print(f"Product is not available.")
+    except Exception as e:
+        print("Error: ", str(e))
+
+    page.wait_for_timeout(3000)
+
+
+@task
+def my_task_4():
+
+    # Navigate to Site
+    page=browser.goto("https://sieportal.siemens.com/en-de/home")
+    
+    # agree cookies
+    page.click('button:has-text("Accept All Cookies")')
+
+    # Products & Services
+    page.wait_for_selector('a:has-text("Products & Services")')
+    page.hover('a:has-text("Products & Services")')
+
+    # List of configurators 
+    list_config_selector='div.primary-label.truncate[title="List of configurators"]'
+    page.wait_for_selector(list_config_selector)
+    page.click(list_config_selector)
+
+    # Drive technology
+    page.locator("div.topLevelNode", has_text="Drive technology").click()
+    # drive_tech_selector='div:has-text("Drive technology")'
+    # page.wait_for_selector(drive_tech_selector)
+    # page.click(drive_tech_selector)
+
+    # Siemens Product Configurator
+    product_config_selector='a:has-text("Siemens Product Configurator")'
+    page.wait_for_selector(product_config_selector)
+    page.click(product_config_selector)
+
+    search_motor(page)
+
+    configure_motor(page)
+   
     # Results & Documents
     results_and_docs_selector='button.btn.summary-action-button.primary.text-with-icon-btn.dark'
     page.wait_for_selector(results_and_docs_selector)
@@ -97,11 +125,5 @@ def my_task_4():
     # Back
     page.click(results_and_docs_selector)
 
-    # Products list
-    products_list_selector='spc-icon.icon-sieportal-orderlist'
-    page.wait_for_selector(products_list_selector)
-    page.click(products_list_selector)
-
-    page.wait_for_timeout(10000)  # Wait for 10 seconds
-
-
+    check_products_list(page)
+    
